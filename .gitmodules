@@ -1,0 +1,3 @@
+[submodule "gpml"]
+	path = gpml
+	url = https://github.com/alshedivat/gpml.git
