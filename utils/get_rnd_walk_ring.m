@@ -1,4 +1,4 @@
-function x = getRandomWalkRing(eps, T, r0,r1,x0)
+function x = get_rnd_walk_ring(eps, T, r0,r1,x0)
 % random walk of length T with speed given by eps
 % within unit box, reflection at borders
 assert(r1>r0)

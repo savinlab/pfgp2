@@ -1,4 +1,4 @@
-function xx = interpolateGrid(x,inc)
+function xx = interpolate_grid(x,inc)
 % CS, could be done better
 % assert(inc==2)
 % a = zeros(size(aa)*2);

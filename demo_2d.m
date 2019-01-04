@@ -15,9 +15,9 @@ x = sample_position_vals(T);
 y = sample_spike_counts(fr_true, x, n1, n2);
 
 % Run GP regression on data
-ng = 256;
-ne = 64;
-pf = pfgp_2d(x, y, ng, ne);
+opt.ng = 256;
+opt.ne = 64;
+[pf, dbg] = pfgp_2d(y, x, opt);
 
 % Plot ground truth vs GP estimate
 plot_results(fr_true, x, y, pf);
@@ -55,7 +55,7 @@ function [x] = sample_position_vals(n_pts)
 % Use random walk to sample realistic trajectory in 2D space
 
 % Generate samples from random walk
-rw_smps = getRandomWalkRing(0.05, n_pts, 0.25, 0.99, [0, 0.75]);
+rw_smps = get_rnd_walk_ring(0.05, n_pts, 0.25, 0.99, [0, 0.75]);
 
 % Rescale x to unit square
 x = ceil(256 / 2 * (rw_smps + 1));
@@ -90,14 +90,14 @@ scatter(x(idx, 1), x(idx, 2), 9, y(idx), 'filled');
 title('raw data ');
 
 subplot(143);
-imagesc(pf.m_t');
+imagesc(pf.mtuning');
 title('posterior mean estimate');
 % caxis([0 5])
 axis square;
 axis xy;
 
 subplot(144);
-imagesc(sqrt(pf.v_t)');
+imagesc(sqrt(pf.vartuning)');
 title('posterior sd ');
 axis square;
 axis xy;
