@@ -7,6 +7,16 @@ function [arr] = vec_to_arr(vec, dims)
 % 
 % Returns:
 %     arr (array): Array with given dimensions (if dimensions are compatible)
+%
+% Throws:
+%     error ('vec_to_arr:incorrect_dims'): If dimensions are not compatible
+%         with vector
+
+assert( ...
+    size(vec, 1) == prod(dims), ...
+    'vec_to_arr:incorrect_dims', ...
+    'Dimensions not compatible with vector'...
+);
 
 arr = reshape(vec, dims);
 

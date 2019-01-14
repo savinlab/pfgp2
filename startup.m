@@ -1,4 +1,4 @@
-% Startup script for pfgp2 package
+%%% Startup script for pfgp2 package
 
 fprintf('Executing pfgp2 startup script...\n')
 pkg_root_dir = fileparts(mfilename('fullpath'));
