@@ -2,7 +2,7 @@ function [results, time] = gp_inf_slow(x, y, x_test, model, hyp)
 % Perform standard GP inference
 %
 % Args:
-%     x (Nx2 array): Position values
+%     x (NxD array): Position values
 %     y (Nx1 array): Spike counts
 %     x_test (array): Test points used for inference
 %     model (struct): GP model parameters. Contains the following fields:
@@ -14,12 +14,12 @@ function [results, time] = gp_inf_slow(x, y, x_test, model, hyp)
 %
 % Returns:
 %     results (struct): Contains the following fields:
-%         m_y (ne x ne array): Posterior mean of observations
-%         v_y (ne x ne array): Posterior var of observations
-%         m_f (ne x ne array): Posterior mean of latent function
-%         v_f (ne x ne array): Posterior var of latent function
-%         m_t (ne x ne array): Posterior mean of tuning function
-%         v_t (ne x ne array): Posterior var of tuning function
+%         m_y ((grid size)xD array): Posterior mean of observations
+%         v_y ((grid size)xD array): Posterior var of observations
+%         m_f ((grid size)xD array): Posterior mean of latent function
+%         v_f ((grid size)xD array): Posterior var of latent function
+%         m_t ((grid size)xD array): Posterior mean of tuning function
+%         v_t ((grid size)xD array): Posterior var of tuning function
 %     time (double): GP inference time
 
 inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-5);

@@ -1,5 +1,5 @@
-function [results, dbg] = pfgp_2d(y, x, opt, hyp)
-% Run 2D Gaussian process regression on neural spike data.
+function [results, dbg] = pfgp_3d(y, x, opt, hyp)
+% Run 3D Gaussian process regression on neural spike data.
 %
 % This function assumes a Gaussian process (GP) model with a Poisson 
 % likelihood and a spectral mixture kernel. There are two ways to invoke the 
@@ -15,14 +15,16 @@ function [results, dbg] = pfgp_2d(y, x, opt, hyp)
 %
 % Args:
 %     y (Nx1 array): Spike counts
-%     x (Nx2 array): Position values
+%     x (Nx3 array): Position values
 %     opt (struct): Optional parameters
-%         x_min (float): Minimum position value (default value: 1.0)
-%         x_max (float): Maximum position value (default value: 256.0)
-%         ng (int): Number of points to use for each dimension of kernel grid 
-%             (default value: 256)
-%         ne (int): Number of points to use for each dimension of test grid
-%             (default value: 64)
+%         x_min (1x3 float array): Minimum position values 
+%             (default value: [1.0, 1.0, 1.0])
+%         x_max (1x3 float array): Maximum position values
+%             (default value: [256.0, 256.0, 256.0])
+%         ng (1x3 int array): Number of points to use for each dimension of
+%             kernel grid (default value: [32, 32, 10])
+%         ne (1x3 int array): Number of points to use for each dimension of
+%             test grid (default value: [32, 32, 10])
 %         inc_slow (int): Factor by which number of coarse grid points is 
 %             smaller than number of fine grid points (default value: 2)
 %         use_se (bool): Whether to use squared exponential (SE) kernel
@@ -34,18 +36,20 @@ function [results, dbg] = pfgp_2d(y, x, opt, hyp)
 % Returns:
 %     results (struct): Contains the following fields:
 %         hyp (struct): Hyperparameter struct (see GPML docs)
-%         x_test ((ne^2)x2 array): Test points used for inference
-%         fmu (ne x ne array): Posterior mean of latent function
-%         fsd2 (ne x ne array): Posterior var of latent function
-%         mtuning (ne x ne array): Posterior mean of tuning function
-%         vartuning (ne x ne array): Posterior var of tuning function
+%         x_test ((ne(1)*ne(2)*ne(3))x3 array): Test points used for inference
+%         fmu (ne(1) x ne(2) x ne(3) array): Posterior mean of latent function
+%         fsd2 (ne(1) x ne(2) x ne(3) array): Posterior var of latent function
+%         mtuning (ne(1) x ne(2) x ne(3) array): Posterior mean of tuning
+%             function
+%         vartuning (ne(1) x ne(2) x ne(3) array): Posterior var of tuning
+%             function
 %     dbg (struct): Debug information
 
 % Set defaults for opt
-if ~isfield(opt, 'x_min'), opt.x_min = 1.0; end
-if ~isfield(opt, 'x_max'), opt.x_max = 256.0; end
-if ~isfield(opt, 'ng'), opt.ng = 256; end
-if ~isfield(opt, 'ne'), opt.ne = 64; end
+if ~isfield(opt, 'x_min'), opt.x_min = [1.0, 1.0, 1.0]; end
+if ~isfield(opt, 'x_max'), opt.x_max = [256.0, 256.0, 256.0]; end
+if ~isfield(opt, 'ng'), opt.ng = [32, 32, 10]; end
+if ~isfield(opt, 'ne'), opt.ne = [32, 32, 10]; end
 if ~isfield(opt, 'inc_slow'), opt.inc_slow = 2; end
 if ~isfield(opt, 'use_se'), opt.use_se = false; end
 dbg.opt = opt;
@@ -56,44 +60,51 @@ end
 
 % Grid for kernel
 kg = { ...
-    linspace(opt.x_min, opt.x_max, opt.ng)',
-    linspace(opt.x_min, opt.x_max, opt.ng)' ...
+    linspace(opt.x_min(1), opt.x_max(1), opt.ng(1))', ...
+    linspace(opt.x_min(2), opt.x_max(2), opt.ng(2))', ...
+    linspace(opt.x_min(3), opt.x_max(3), opt.ng(3))' ...
 };
 
 % GP model parameters
 model.lik = {@likPoisson, 'exp'};
 model.mean = {@meanZero};
 if opt.use_se
-    model.cov = {@apxGrid, {{@covSEiso}, {@covSEiso}}, kg};
+    model.cov = {@apxGrid, {{@covSEiso}, {@covSEiso}, {@covSEiso}}, kg};
 else
     model.sm_q = 5;
-    model.cov = {@apxGrid, {{@covSM, model.sm_q}, {@covSM, model.sm_q}}, kg};
+    model.cov = { ...
+        @apxGrid, ...
+        {{@covSM, model.sm_q}, {@covSM, model.sm_q}, {@covSM, model.sm_q}}, ...
+        kg ...
+    };
 end
 
 % Compute MLE estimate of hyperparameters (if required)
 if isempty(hyp)
     fprintf('Computing hyperparameter estimate...\n');
-    [hyp, hyp_dbg] = mle_hyp_2d(x, y, model, opt);
+    [hyp, hyp_dbg] = mle_hyp_3d(x, y, model, opt);
     dbg.hyp = hyp_dbg;
     fprintf('Done. Estimation took %f seconds\n', hyp_dbg.time);
 end
 
 % Grid of test points
 x_test_vecs = { ...
-    linspace(opt.x_min, opt.x_max, opt.ne)', ...
-    linspace(opt.x_min, opt.x_max, opt.ne)' ...
+    linspace(opt.x_min(1), opt.x_max(1), opt.ne(1))', ...
+    linspace(opt.x_min(2), opt.x_max(2), opt.ne(2))', ...
+    linspace(opt.x_min(3), opt.x_max(3), opt.ne(3))', ...
 };
 x_test = apxGrid('expand', x_test_vecs);
-x_test_dims = [opt.ne, opt.ne];
+x_test_dims = opt.ne;
 x_test_mesh = mtx_to_mesh(x_test, x_test_dims);
 
 % Coarse grid for slow inference
 x_slow_vecs = { ...
     x_test_vecs{1}(opt.inc_slow:opt.inc_slow:end, :), ...
-    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end, :) ...
+    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end, :), ...
+    x_test_vecs{3}(opt.inc_slow:opt.inc_slow:end, :), ...
 };
 x_slow = apxGrid('expand', x_slow_vecs);
-x_slow_dims = x_test_dims ./ opt.inc_slow;
+x_slow_dims = opt.ne ./ opt.inc_slow;
 x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
 
 fprintf('Computing posterior mean using fast inference...\n');
