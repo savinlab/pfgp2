@@ -1,5 +1,5 @@
 function [results, time] = gp_inf_slow(x, y, x_test, model, hyp)
-% Perform standard GP inference
+% Perform standard GP inference.
 %
 % Args:
 %     x (NxD array): Position values

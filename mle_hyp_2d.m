@@ -1,5 +1,5 @@
 function [hyp, dbg] = mle_hyp(x, y, model, opt)
-% Compute maximum likelihood estimate (MLE) of hyperparameters.
+% Compute maximum likelihood estimate (MLE) of hyperparameters for 2D data.
 %
 % Args:
 %     x (Nx2 array): Position values
