@@ -1,29 +1,34 @@
-function [hyp, dbg] = mle_hyp(x, y, model, opt)
+function [hyp, dbg] = mle_hyp(y, x, model, opt, hyp_0)
 % Compute maximum likelihood estimate (MLE) of hyperparameters for 2D data.
 %
 % Args:
-%     x (Nx2 array): Position values
 %     y (Nx1 array): Spike counts
+%     x (Nx2 array): Position values
 %     model (struct): GP model parameters. Contains the following fields:
 %         sm_q (int): Number of mixture components (for SM kernel)
 %         cov (GPML cov): Covariance object (see GPML docs)
 %         mean (GPML mean): Mean object (see GPML docs)
 %         lik (GPML lik): Likelihood object (see GPML docs)
 %     opt (struct): Additional parameters
-%         x_min (float): Minimum position value
-%         x_max (float): Maximum position value
+%         x_min (float): Minimum position value (default: 1.0)
+%         x_max (float): Maximum position value (default: 256.0)
 %         use_se (bool): Whether to use squared exponential (SE) kernel
-%             instead of spectral mixture (SM) kernel
+%             instead of spectral mixture (SM) kernel (default: false)
+%     hyp_0 (struct, optional): Initial hyperparameter values for optimizer.
+%         If this parameter is not passed, initial value will be selected 
+%         based on kernel type and size of domain.
 %
 % Returns:
 %     hyp (struct): Hyperparameter struct (see GPML docs)
 %     dbg (struct): Debug information
 
-if opt.use_se
-    hyp_0 = get_hyp_init_se(opt.x_min, opt.x_max);
-else
-    hyp_0 = get_hyp_init_sm(model.sm_q, opt.x_min, opt.x_max);
+if ~isfield(opt, 'x_min'), opt.x_min = 1.0; end
+if ~isfield(opt, 'x_max'), opt.x_max = 256.0; end
+if ~isfield(opt, 'use_se'), opt.use_se = false; end
+if nargin < 5
+    hyp_0 = get_hyp_init_2d(opt, model);
 end
+dbg.opt = opt;
 dbg.hyp_0 = hyp_0;
 
 inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-5);
@@ -34,47 +39,5 @@ gp_params = {inf, model.mean, model.cov, model.lik};
 tic;
 hyp = minimize(hyp_0, @gp, -40, gp_params{:}, x, y);
 dbg.time = toc;
-
-end
-
-
-function [hyp_0] = get_hyp_init_sm(sm_q, x_min, x_max)
-% Compute initial hyperparameter values for SM kernel
-%
-% Args:
-%     sm_q (int): Number of mixture components for SM kernel
-%     x_min (float): Minimum position value
-%     x_max (float): Maximum position value
-%
-% Returns:
-%     hyp_0 (struct): Initial hyperparameter struct (see GPML docs)
-
-scl = 1 / (x_max - x_min);
-w = ones(sm_q, 1) / sm_q; 
-m1 = scl * rand(1, sm_q); 
-m2 = scl  * rand(1, sm_q); 
-v1 = (scl ^ 2) * rand(1, sm_q);
-v2 = (scl ^ 2) * rand(1, sm_q);
-hyp_0.cov = [log([w; m1(:); v1(:)]); log([w; m2(:); v2(:)])];
-hyp_0.mean = [];
-hyp_0.lik = [];
-
-end
-
-
-function [hyp_0] = get_hyp_init_se(x_min, x_max)
-% Compute initial hyperparameter values for SE kernel
-%
-% Args:
-%     x_min (float): Minimum position value
-%     x_max (float): Maximum position value
-%
-% Returns:
-%     hyp_0 (struct): Initial hyperparameter struct (see GPML docs)
-
-scl = 1 / (x_max - x_min);
-hyp_0.cov = [log([scl; 1]); log([scl; 1])];
-hyp_0.mean = [];
-hyp_0.lik = [];
 
 end

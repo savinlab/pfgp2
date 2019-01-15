@@ -73,7 +73,7 @@ end
 % Compute MLE estimate of hyperparameters (if required)
 if isempty(hyp)
     fprintf('Computing hyperparameter estimate...\n');
-    [hyp, hyp_dbg] = mle_hyp_2d(x, y, model, opt);
+    [hyp, hyp_dbg] = mle_hyp_2d(y, x, model, opt);
     dbg.hyp = hyp_dbg;
     fprintf('Done. Estimation took %f seconds\n', hyp_dbg.time);
 end
