@@ -54,26 +54,10 @@ if nargin < 4
     hyp = [];
 end
 
-% Grid for kernel
-kg = { ...
-    linspace(opt.x_min, opt.x_max, opt.ng)',
-    linspace(opt.x_min, opt.x_max, opt.ng)' ...
-};
-
-% GP model parameters
-model.lik = {@likPoisson, 'exp'};
-model.mean = {@meanZero};
-if opt.use_se
-    model.cov = {@apxGrid, {{@covSEiso}, {@covSEiso}}, kg};
-else
-    model.sm_q = 5;
-    model.cov = {@apxGrid, {{@covSM, model.sm_q}, {@covSM, model.sm_q}}, kg};
-end
-
 % Compute MLE estimate of hyperparameters (if required)
 if isempty(hyp)
     fprintf('Computing hyperparameter estimate...\n');
-    [hyp, hyp_dbg] = mle_hyp_2d(y, x, model, opt);
+    [hyp, hyp_dbg] = mle_hyp_2d(y, x, opt);
     dbg.hyp = hyp_dbg;
     fprintf('Done. Estimation took %f seconds\n', hyp_dbg.time);
 end
@@ -95,6 +79,9 @@ x_slow_vecs = { ...
 x_slow = apxGrid('expand', x_slow_vecs);
 x_slow_dims = x_test_dims ./ opt.inc_slow;
 x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
+
+% GP model parameters
+model = get_gp_model_2d(opt);
 
 fprintf('Computing posterior mean using fast inference...\n');
 [inf_fast_results, inf_fast_time] = gp_inf_fast(x, y, x_test, model, hyp);

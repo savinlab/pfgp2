@@ -58,31 +58,13 @@ if nargin < 4
     hyp = [];
 end
 
-% Grid for kernel
-kg = { ...
-    linspace(opt.x_min(1), opt.x_max(1), opt.ng(1))', ...
-    linspace(opt.x_min(2), opt.x_max(2), opt.ng(2))', ...
-    linspace(opt.x_min(3), opt.x_max(3), opt.ng(3))' ...
-};
-
-% GP model parameters
-model.lik = {@likPoisson, 'exp'};
-model.mean = {@meanZero};
-if opt.use_se
-    model.cov = {@apxGrid, {{@covSEiso}, {@covSEiso}, {@covSEiso}}, kg};
-else
-    model.sm_q = 5;
-    model.cov = { ...
-        @apxGrid, ...
-        {{@covSM, model.sm_q}, {@covSM, model.sm_q}, {@covSM, model.sm_q}}, ...
-        kg ...
-    };
-end
+% Get GP model from opt values
+model = get_gp_model_3d(opt);
 
 % Compute MLE estimate of hyperparameters (if required)
 if isempty(hyp)
     fprintf('Computing hyperparameter estimate...\n');
-    [hyp, hyp_dbg] = mle_hyp_3d(y, x, model, opt);
+    [hyp, hyp_dbg] = mle_hyp_3d(y, x, opt);
     dbg.hyp = hyp_dbg;
     fprintf('Done. Estimation took %f seconds\n', hyp_dbg.time);
 end
