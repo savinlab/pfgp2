@@ -108,7 +108,14 @@ m_f = vec_to_arr(inf_fast_results.m_f, x_test_dims);
 
 % Interpolate slow var on fast grid to get latent variance
 v_f_slow = vec_to_arr(inf_slow_results.v_f, x_slow_dims);
-v_f = interpolate_grid(x_slow_mesh, v_f_slow, x_test_mesh);
+v_f_interp = interpolate_grid(x_slow_mesh, v_f_slow, x_test_mesh);
+neg_vals = v_f_interp(v_f_interp < 0);
+if ~isempty(neg_vals)
+    disp('Warning: Negative interpolated variance values:');
+    disp(neg_vals);
+end
+v_f = abs(v_f_interp);
+
 
 % Compute tuning mean and variance (lognormal distribution)
 m_t = exp(m_f + v_f / 2);

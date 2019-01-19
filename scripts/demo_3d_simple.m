@@ -4,8 +4,8 @@ clear all, close all, clc
 rng(17435);
 
 x_min = [1.0, 1.0, 1.0];
-x_max = [256.0, 256.0, 50.0];
-dims = [256, 256, 50];
+x_max = [256.0, 256.0, 20.0];
+dims = [256, 256, 20];
 n_pts = 10000;
 
 % Define true firing rate function
@@ -33,8 +33,8 @@ opt.ng = [32, 32, 10];
 opt.ne = [32, 32, 10];
 [pf, dbg] = pfgp_3d(y, x, opt);
 
-%% Plot ground truth vs GP estimate
-plot_results(fr_true, x, y, pf);
+% Plot ground truth vs GP estimate
+plot_results(fr_true, x, y, pf, x_max);
 
 
 %% Helper functions
@@ -94,13 +94,11 @@ colorbar;
 end
 
 
-function plot_results(fr_true, x, y, pf)
+function plot_results(fr_true, x, y, pf, x_max)
 % Plot results of demo
 
-pop_spike_max = 50;
-
 grid_max = size(pf.mtuning, 3);
-inc = pop_spike_max / grid_max;
+inc = x_max(3) / grid_max;
 grid_indices = 1:10;
 n_grid_indices = size(grid_indices, 2);
 
@@ -124,11 +122,11 @@ for i = 1:n_grid_indices
 
     subplot(n_grid_indices, 4, i * 4 - 3);
     plot_fr_true(fr_true_slice, cbar_lims);
-    title(sprintf('%d/%d', ps_min, pop_spike_max));
+    title(sprintf('%d/%d', ps_min, x_max(3)));
 
     subplot(n_grid_indices, 4, i * 4 - 2);
     plot_raw_data(x_slice, y_slice, cbar_lims);
-    title(sprintf('%d:%d/%d', ps_min, ps_max, pop_spike_max));
+    title(sprintf('%d:%d/%d', ps_min, ps_max, x_max(3)));
 
     subplot(n_grid_indices, 4, i * 4 - 1);
     plot_mtuning(mtuning_slice, cbar_lims);
