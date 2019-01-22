@@ -72,12 +72,13 @@ x_test_dims = [opt.ne, opt.ne];
 x_test_mesh = mtx_to_mesh(x_test, x_test_dims);
 
 % Coarse grid for slow inference
+ns = ceil(opt.ne / opt.inc_slow);
 x_slow_vecs = { ...
-    x_test_vecs{1}(opt.inc_slow:opt.inc_slow:end, :), ...
-    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end, :) ...
+    linspace(opt.x_min, opt.x_max, ns)', ...
+    linspace(opt.x_min, opt.x_max, ns)' ...
 };
 x_slow = apxGrid('expand', x_slow_vecs);
-x_slow_dims = x_test_dims ./ opt.inc_slow;
+x_slow_dims = [ns, ns];
 x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
 
 % GP model parameters

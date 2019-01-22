@@ -80,13 +80,14 @@ x_test_dims = opt.ne;
 x_test_mesh = mtx_to_mesh(x_test, x_test_dims); %what is this?
 
 % Coarse grid for slow inference
+ns = ceil(opt.ne ./ opt.inc_slow);
 x_slow_vecs = { ...
-    x_test_vecs{1}(opt.inc_slow:opt.inc_slow:end, :), ...
-    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end, :), ...
-    x_test_vecs{3}(opt.inc_slow:opt.inc_slow:end, :), ...
+    linspace(opt.x_min(1), opt.x_max(1), ns(1))', ...
+    linspace(opt.x_min(2), opt.x_max(2), ns(2))', ...
+    linspace(opt.x_min(3), opt.x_max(3), ns(3))' ...
 };
 x_slow = apxGrid('expand', x_slow_vecs);
-x_slow_dims = opt.ne ./ opt.inc_slow;
+x_slow_dims = ns;
 x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
 
 fprintf('Computing posterior mean using fast inference...\n');
@@ -119,6 +120,7 @@ results.x_test = x_test;
 results.x_test_mesh = x_test_mesh;
 results.fmu = m_f;
 results.fsd2 = v_f;
+
 results.mtuning = m_t;
 results.vartuning = v_t;
 

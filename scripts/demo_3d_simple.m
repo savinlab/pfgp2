@@ -1,99 +1,43 @@
-%%% Script for testing 3D GP regression on synthetic data
+%%% Script for testing 3D GP regression on simple synthetic data
 
 clear all, close all, clc
 rng(17435);
 
-% Create synthetic dataset
-n1 = 256;
-n2 = 256;
-n3 = 50;
-T = 10000;
-fr_true = sample_tuning_fn(n1, n2, n3);
+x_min = [1.0, 1.0, 1.0];
+x_max = [256.0, 256.0, 20.0];
+dims = [256, 256, 20];
+n_pts = 10000;
 
-% Sample position values and population spike values
-x_pos = sample_position_vals(T);
-x_pop = sample_pop_spikes(T);
-x = [x_pos, x_pop];
+% Define true firing rate function
+[X_1, X_2, X_3] = meshgrid( ...
+    linspace(x_min(1), x_max(1), dims(1)), ...
+    linspace(x_min(2), x_max(2), dims(2)), ...
+    linspace(x_min(3), x_max(3), dims(3)) ...
+);
+fr_true = 0.2 * exp((cos(X_1 ./ 15.0) + cos(X_2 ./ 15.0))) .* X_3;
+
+% Sample data points
+n_vals = prod(dims);
+x_ind = randi([1, n_vals], [n_pts, 1]);
+x_sub = ind2sub(dims, x_ind);
+x = [X_1(x_sub), X_2(x_sub), X_3(x_sub)];
 
 % Sample corresponding spike counts
-y = sample_spike_counts(fr_true, x);
+f = fr_true(x_sub);
+y = poissrnd(f);
 
 % Run GP regression on data
-opt.x_min = [0.0, 0.0, 0.0];
-opt.x_max = [256.0, 256.0, 50.0];
+opt.x_min = x_min;
+opt.x_max = x_max;
 opt.ng = [32, 32, 10];
 opt.ne = [32, 32, 10];
 [pf, dbg] = pfgp_3d(y, x, opt);
 
 % Plot ground truth vs GP estimate
-plot_results(fr_true, x, y, pf);
+plot_results(fr_true, x, y, pf, x_max);
 
 
-function [f] = sample_tuning_fn(n1, n2, n3)
-% Generate a (neurally realistic) random tuning function
-
-% Set basic 2D parameters
-x1 = (1:1:n1)'; 
-x2 = (1:1:n2)';
-[X, Y] = meshgrid(x1, x2);
-lbda = 80; 
-Ng = 6;
-xodd = (1:Ng) * lbda - 45;
-
-% Sample 2D function
-fr = zeros(n1, n2);
-sd = rand - 0.5; 
-sig = [1, sd; sd, 1] / 160;
-for i = 1:Ng
-    for j = 1:Ng
-        mux = xodd(i);
-        muy = xodd(j) +  mod(i, 2) * lbda * cos(pi / 3);
-        xx = [X(:) - mux, Y(:) - muy];
-        fr = fr + reshape(exp(-sum(xx' .* (sig * xx'))'), n1, n2);
-    end
-end
-f_2d = 0.1 + 10 * fr / max(fr(:));
-
-% Add third dimension
-x3 = reshape(1:1:n3, 1, 1, n3);
-f = 0.2 * f_2d .* x3;
-
-end
-
-
-function [x] = sample_position_vals(n_pts)
-% Use random walk to sample realistic trajectory in 2D space
-
-% Generate samples from random walk
-rw_smps = get_rnd_walk_ring(0.05, n_pts, 0.25, 0.99, [0, 0.75]);
-
-% Rescale x to unit square
-x = ceil(256 / 2 * (rw_smps + 1));
-end
-
-
-function [x] = sample_pop_spikes(n_pts)
-% Sample 'population spike' variable (third domain dimension)
-
-%p_raw = 1 ./ (1:50);
-p_raw = ones(1, 50);
-
-p_vals = p_raw / sum(p_raw);
-
-x = sample_discrete(p_vals, n_pts);
-
-end
-
-
-function [y] = sample_spike_counts(fr_true, x)
-% Sample spikes from Poisson distribution
-
-lin_idx = sub2ind(size(fr_true), x(:, 1), x(:, 2), x(:, 3));
-fr_vals = fr_true(lin_idx);
-y = poissrnd(fr_vals);
-
-end
-
+%% Helper functions
 
 function plot_fr_true(fr_true, cbar_lims)
 % Plot ground truth tuning function
@@ -150,13 +94,11 @@ colorbar;
 end
 
 
-function plot_results(fr_true, x, y, pf)
+function plot_results(fr_true, x, y, pf, x_max)
 % Plot results of demo
 
-pop_spike_max = 50;
-
 grid_max = size(pf.mtuning, 3);
-inc = pop_spike_max / grid_max;
+inc = x_max(3) / grid_max;
 grid_indices = 1:10;
 n_grid_indices = size(grid_indices, 2);
 
@@ -180,11 +122,11 @@ for i = 1:n_grid_indices
 
     subplot(n_grid_indices, 4, i * 4 - 3);
     plot_fr_true(fr_true_slice, cbar_lims);
-    title(sprintf('%d/%d', ps_min, pop_spike_max));
+    title(sprintf('%d/%d', ps_min, x_max(3)));
 
     subplot(n_grid_indices, 4, i * 4 - 2);
     plot_raw_data(x_slice, y_slice, cbar_lims);
-    title(sprintf('%d:%d/%d', ps_min, ps_max, pop_spike_max));
+    title(sprintf('%d:%d/%d', ps_min, ps_max, x_max(3)));
 
     subplot(n_grid_indices, 4, i * 4 - 1);
     plot_mtuning(mtuning_slice, cbar_lims);
