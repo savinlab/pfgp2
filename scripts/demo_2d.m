@@ -121,7 +121,6 @@ colorbar;
 end
 
 
-
 function plot_results(fr_true, x, y, pf)
 % Plot results of ground truth recovery experiment
 
@@ -138,35 +137,5 @@ subplot(143);
 plot_mtuning(pf.mtuning, pf_cbar_lims);
 subplot(144);
 plot_sdtuning(sqrt(pf.vartuning), pf_cbar_lims);
-
-%figure();
-%subplot(141);
-%imagesc(fr_true');
-%title('ground truth');
-%axis square; 
-%axis xy;
-%
-%subplot(142);
-%n_pts = size(x, 1);
-%plot(x(1:2:end, 1), x(1:2:end, 2), 'Color', 0.7 * [1, 1, 1]);
-%axis square;
-%axis off;
-%hold on;
-%idx = and(y > 0, mod(1:n_pts, 2)' == 1);
-%scatter(x(idx, 1), x(idx, 2), 9, y(idx), 'filled');
-%title('raw data ');
-%
-%subplot(143);
-%imagesc(pf.mtuning');
-%title('posterior mean estimate');
-%% caxis([0 5])
-%axis square;
-%axis xy;
-%
-%subplot(144);
-%imagesc(sqrt(pf.vartuning)');
-%title('posterior sd ');
-%axis square;
-%axis xy;
 
 end

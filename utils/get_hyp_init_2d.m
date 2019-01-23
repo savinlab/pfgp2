@@ -1,4 +1,4 @@
-function [hyp_0] = get_hyp_init_2d(opt, model)
+function [hyp_0] = get_hyp_init_2d(opt)
 % Compute initial hyperparameter values for 2D GP regression.
 %
 % Args:
@@ -6,7 +6,6 @@ function [hyp_0] = get_hyp_init_2d(opt, model)
 %         x_min (float): Minimum position value
 %         x_max (float): Maximum position value
 %         use_se (bool): Whether to use SE kernel instead of SM kernel
-%     model (struct): GP model parameters. Contains fields:
 %         sm_q (int, optional): Number of mixture components for SM kernel,
 %             if SM kernel if being used.
 %
@@ -34,18 +33,17 @@ if opt.use_se
 else
 
     assert( ...
-        isfield(model, 'sm_q'), ...
+        isfield(opt, 'sm_q'), ...
         'get_hyp_init_2d:missing_params', ...
         'sm_q parameter is required for SM kernel' ...
     );
-    sm_q = model.sm_q;
 
     scl = 1 / (opt.x_max - opt.x_min);
-    w = ones(sm_q, 1) / sm_q; 
-    m1 = scl * rand(1, sm_q); 
-    m2 = scl  * rand(1, sm_q); 
-    v1 = (scl ^ 2) * rand(1, sm_q);
-    v2 = (scl ^ 2) * rand(1, sm_q);
+    w = ones(opt.sm_q, 1) / opt.sm_q; 
+    m1 = scl * rand(1, opt.sm_q); 
+    m2 = scl  * rand(1, opt.sm_q); 
+    v1 = (scl ^ 2) * rand(1, opt.sm_q);
+    v2 = (scl ^ 2) * rand(1, opt.sm_q);
 
     % Initial hyperparameter values for SM kernel
     hyp_0.cov = [log([w; m1(:); v1(:)]); log([w; m2(:); v2(:)])];

@@ -27,6 +27,8 @@ function [results, dbg] = pfgp_2d(y, x, opt, hyp)
 %             smaller than number of fine grid points (default value: 2)
 %         use_se (bool): Whether to use squared exponential (SE) kernel
 %             instead of spectral mixture (SM) kernel (default value: false)
+%         sm_q (int): Number of spectral mixture components (if SM kernel is
+%             being used).
 %     hyp (struct, optional): Hyperparameters (see GPML docs). If 
 %         hyperparameters are not passed in, function will compute maximum 
 %         likelihood estimate of hyperparameters.
@@ -48,6 +50,7 @@ if ~isfield(opt, 'ng'), opt.ng = 256; end
 if ~isfield(opt, 'ne'), opt.ne = 64; end
 if ~isfield(opt, 'inc_slow'), opt.inc_slow = 2; end
 if ~isfield(opt, 'use_se'), opt.use_se = false; end
+if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
 dbg.opt = opt;
 
 if nargin < 4

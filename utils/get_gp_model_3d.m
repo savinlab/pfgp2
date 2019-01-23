@@ -13,10 +13,11 @@ function [model] = get_gp_model_3d(opt)
 %             test grid (default value: [32, 32, 10])
 %         use_se (bool): Whether to use squared exponential (SE) kernel
 %             instead of spectral mixture (SM) kernel (default value: false)
+%         sm_q (int): Number of mixture components (for SM kernel). Only
+%             required if SM kernel is being used.
 %
 % Returns:
 %     model (struct): GP model parameters
-%         sm_q (int): Number of mixture components (for SM kernel)
 %         cov (GPML cov): Covariance object (see GPML docs)
 %         mean (GPML mean): Mean object (see GPML docs)
 %         lik (GPML lik): Likelihood object (see GPML docs)
@@ -34,10 +35,9 @@ model.mean = {@meanZero};
 if opt.use_se
     model.cov = {@apxGrid, {{@covSEiso}, {@covSEiso}, {@covSEiso}}, kg};
 else
-    model.sm_q = 5;
     model.cov = { ...
         @apxGrid, ...
-        {{@covSM, model.sm_q}, {@covSM, model.sm_q}, {@covSM, model.sm_q}}, ...
+        {{@covSM, opt.sm_q}, {@covSM, opt.sm_q}, {@covSM, opt.sm_q}}, ...
         kg ...
     };
 end

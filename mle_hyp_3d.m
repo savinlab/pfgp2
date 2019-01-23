@@ -9,10 +9,11 @@ function [hyp, dbg] = mle_hyp_3d(y, x, opt, hyp_0)
 %         x_max (1x3 float array): Maximum position values
 %         use_se (bool): Whether to use squared exponential (SE) kernel
 %             instead of spectral mixture (SM) kernel
+%         sm_q (int): Number of spectral mixture components (if SM kernel is
+%             being used).
 %     hyp_0 (struct, optional): Initial hyperparameter values for optimizer.
 %         If this parameter is not passed, initial value will be selected 
 %         based on kernel type and size of domain.
-%
 %
 % Returns:
 %     hyp (struct): Hyperparameter struct (see GPML docs)
@@ -21,6 +22,7 @@ function [hyp, dbg] = mle_hyp_3d(y, x, opt, hyp_0)
 if ~isfield(opt, 'x_min'), opt.x_min = [1.0, 1.0, 1.0]; end
 if ~isfield(opt, 'x_max'), opt.x_max = [256.0, 256.0, 256.0]; end
 if ~isfield(opt, 'use_se'), opt.use_se = false; end
+if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
 if nargin < 4
     hyp_0 = [];
 end
@@ -33,7 +35,7 @@ inf = @(varargin) infGrid(varargin{:}, inf_opt);
 gp_params = {inf, model.mean, model.cov, model.lik};
 
 if isempty(hyp_0)
-    hyp_0 = get_hyp_init_3d(opt, model);
+    hyp_0 = get_hyp_init_3d(opt);
 end
 dbg.hyp_0 = hyp_0;
 
