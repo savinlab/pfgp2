@@ -80,7 +80,7 @@ x_test_vecs = { ...
 };
 x_test = apxGrid('expand', x_test_vecs);
 x_test_dims = opt.ne;
-x_test_mesh = mtx_to_mesh(x_test, x_test_dims);
+x_test_mesh = mtx_to_mesh(x_test, x_test_dims); %what is this?
 
 % Coarse grid for slow inference
 ns = ceil(opt.ne ./ opt.inc_slow);
