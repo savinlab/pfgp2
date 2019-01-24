@@ -7,7 +7,7 @@ rng(17435);
 n1 = 256;
 n2 = 256;
 n3 = 50;
-T = 10000;
+T = 20000;
 fr_true = sample_tuning_fn(n1, n2, n3);
 
 % Sample position values and population spike values
@@ -21,8 +21,8 @@ y = sample_spike_counts(fr_true, x);
 % Run GP regression on data
 opt.x_min = [0.0, 0.0, 0.0];
 opt.x_max = [256.0, 256.0, 50.0];
-opt.ng = [32, 32, 10];
-opt.ne = [32, 32, 10];
+opt.ng = [32, 32, 25];
+opt.ne = [32, 32, 25];
 [pf, dbg] = pfgp_3d(y, x, opt);
 
 % Plot ground truth vs GP estimate
@@ -40,7 +40,7 @@ lbda = 80;
 Ng = 6;
 xodd = (1:Ng) * lbda - 45;
 
-% Sample 2D function
+% generate 2D function
 fr = zeros(n1, n2);
 sd = rand - 0.5; 
 sig = [1, sd; sd, 1] / 160;
@@ -55,8 +55,8 @@ end
 f_2d = 0.1 + 10 * fr / max(fr(:));
 
 % Add third dimension
-x3 = reshape(1:1:n3, 1, 1, n3);
-f = 0.2 * f_2d .* x3;
+x3 = reshape(1:1:n3, 1, 1, n3); %????
+f = 0.05 * f_2d .* x3;
 
 end
 
@@ -161,7 +161,8 @@ grid_indices = 1:10;
 n_grid_indices = size(grid_indices, 2);
 
 figure();
-
+%%
+c_raw_lims = [1 5];
 for i = 1:n_grid_indices
 
     grid_idx = grid_indices(i);
@@ -183,7 +184,7 @@ for i = 1:n_grid_indices
     title(sprintf('%d/%d', ps_min, pop_spike_max));
 
     subplot(n_grid_indices, 4, i * 4 - 2);
-    plot_raw_data(x_slice, y_slice, cbar_lims);
+    plot_raw_data(x_slice, y_slice, c_raw_lims);
     title(sprintf('%d:%d/%d', ps_min, ps_max, pop_spike_max));
 
     subplot(n_grid_indices, 4, i * 4 - 1);
