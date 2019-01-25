@@ -37,6 +37,8 @@ function [results, dbg] = pfgp_2d(y, x, opt, hyp)
 %     results (struct): Contains the following fields:
 %         hyp (struct): Hyperparameter struct (see GPML docs)
 %         x_test ((ne^2)x2 array): Test points used for inference
+%         x_test_mesh (2x1 cell array): Test points used for inference, in
+%             meshgrid format
 %         fmu (ne x ne array): Posterior mean of latent function
 %         fsd2 (ne x ne array): Posterior var of latent function
 %         mtuning (ne x ne array): Posterior mean of tuning function
@@ -75,14 +77,12 @@ x_test_dims = [opt.ne, opt.ne];
 x_test_mesh = mtx_to_mesh(x_test, x_test_dims);
 
 % Coarse grid for slow inference
-ns = ceil(opt.ne / opt.inc_slow);
 x_slow_vecs = { ...
-    linspace(opt.x_min, opt.x_max, ns)', ...
-    linspace(opt.x_min, opt.x_max, ns)' ...
+    x_test_vecs{1}(opt.inc_slow:opt.inc_slow:end), ...
+    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end) ...
 };
 x_slow = apxGrid('expand', x_slow_vecs);
-x_slow_dims = [ns, ns];
-x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
+x_slow_dims = [size(x_slow_vecs{1}, 1), size(x_slow_vecs{2}, 1)];
 
 % GP model parameters
 model = get_gp_model_2d(opt);
@@ -104,13 +104,13 @@ fprintf('Done. Slow inference took %f seconds\n', inf_slow_time);
 % Use fast mean for latent mean
 m_f = vec_to_arr(inf_fast_results.m_f, x_test_dims);
 
-% Interpolate slow var on fast grid to get latent variance
+% Expand slow var to size of fast grid to get latent variance
 v_f_slow = vec_to_arr(inf_slow_results.v_f, x_slow_dims);
-v_f = interpolate_grid(x_slow_mesh, v_f_slow, x_test_mesh);
+v_f = expand_grid_2d(v_f_slow, opt.inc_slow);
 
 % Compute tuning mean and variance (lognormal distribution)
-m_t = exp(m_f + v_f / 2);
-v_t = (exp(v_f) - 1) .* exp(2 * m_f + v_f);
+m_t = exp(m_f + v_f ./ 2);
+v_t = (exp(v_f) - 1) .* exp(2 .* m_f + v_f);
 
 results.hyp = hyp;
 results.x_test = x_test;

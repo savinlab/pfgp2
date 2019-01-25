@@ -39,6 +39,8 @@ function [results, dbg] = pfgp_3d(y, x, opt, hyp)
 %     results (struct): Contains the following fields:
 %         hyp (struct): Hyperparameter struct (see GPML docs)
 %         x_test ((ne(1)*ne(2)*ne(3))x3 array): Test points used for inference
+%         x_test_mesh (3x1 cell array): Test points used for inference, in
+%             meshgrid format.
 %         fmu (ne(1) x ne(2) x ne(3) array): Posterior mean of latent function
 %         fsd2 (ne(1) x ne(2) x ne(3) array): Posterior var of latent function
 %         mtuning (ne(1) x ne(2) x ne(3) array): Posterior mean of tuning
@@ -80,18 +82,20 @@ x_test_vecs = { ...
 };
 x_test = apxGrid('expand', x_test_vecs);
 x_test_dims = opt.ne;
-x_test_mesh = mtx_to_mesh(x_test, x_test_dims); %what is this?
+x_test_mesh = mtx_to_mesh(x_test, x_test_dims);
 
 % Coarse grid for slow inference
-ns = ceil(opt.ne ./ opt.inc_slow);
 x_slow_vecs = { ...
-    linspace(opt.x_min(1), opt.x_max(1), ns(1))', ...
-    linspace(opt.x_min(2), opt.x_max(2), ns(2))', ...
-    linspace(opt.x_min(3), opt.x_max(3), ns(3))' ...
+    x_test_vecs{1}(opt.inc_slow:opt.inc_slow:end), ...
+    x_test_vecs{2}(opt.inc_slow:opt.inc_slow:end) ...
+    x_test_vecs{3}(opt.inc_slow:opt.inc_slow:end) ...
 };
 x_slow = apxGrid('expand', x_slow_vecs);
-x_slow_dims = ns;
-x_slow_mesh = mtx_to_mesh(x_slow, x_slow_dims);
+x_slow_dims = [ ...
+    size(x_slow_vecs{1}, 1), ...
+    size(x_slow_vecs{2}, 1), ...
+    size(x_slow_vecs{3}, 1) ...
+];
 
 fprintf('Computing posterior mean using fast inference...\n');
 [inf_fast_results, inf_fast_time] = gp_inf_fast(x, y, x_test, model, hyp);
@@ -112,11 +116,11 @@ m_f = vec_to_arr(inf_fast_results.m_f, x_test_dims);
 
 % Interpolate slow var on fast grid to get latent variance
 v_f_slow = vec_to_arr(inf_slow_results.v_f, x_slow_dims);
-v_f = interpolate_grid(x_slow_mesh, v_f_slow, x_test_mesh);
+v_f = expand_grid_3d(v_f_slow, opt.inc_slow);
 
 % Compute tuning mean and variance (lognormal distribution)
-m_t = exp(m_f + v_f / 2);
-v_t = (exp(v_f) - 1) .* exp(2 * m_f + v_f);
+m_t = exp(m_f + v_f ./ 2);
+v_t = (exp(v_f) - 1) .* exp(2 .* m_f + v_f);
 
 results.hyp = hyp;
 results.x_test = x_test;

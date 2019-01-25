@@ -4,9 +4,9 @@ clear all, close all, clc
 rng(17435);
 
 x_min = [1.0, 1.0, 1.0];
-x_max = [256.0, 256.0, 20.0];
-dims = [256, 256, 20];
-n_pts = 10000;
+x_max = [256.0, 256.0, 4.0];
+dims = [256, 256, 4];
+n_pts = 7000;
 
 % Define true firing rate function
 [X_1, X_2, X_3] = meshgrid( ...
@@ -29,9 +29,12 @@ y = poissrnd(f);
 % Run GP regression on data
 opt.x_min = x_min;
 opt.x_max = x_max;
-opt.ng = [32, 32, 10];
-opt.ne = [32, 32, 10];
-[pf, dbg] = pfgp_3d(y, x, opt);
+opt.ng = [32, 32, 4];
+opt.ne = [32, 32, 4];
+opt.sm_q = 5;
+
+[hyp, hyp_dbg] = mle_hyp_3d(y, x, opt);
+[pf, dbg] = pfgp_3d(y, x, opt, hyp);
 
 % Plot ground truth vs GP estimate
 plot_results(fr_true, x, y, pf, x_max);
@@ -99,7 +102,7 @@ function plot_results(fr_true, x, y, pf, x_max)
 
 grid_max = size(pf.mtuning, 3);
 inc = x_max(3) / grid_max;
-grid_indices = 1:10;
+grid_indices = 1:4;
 n_grid_indices = size(grid_indices, 2);
 
 figure();

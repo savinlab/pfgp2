@@ -29,7 +29,7 @@ end
 dbg.opt = opt;
 
 model = get_gp_model_3d(opt);
-inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-5);
+inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-8);
 dbg.inf_opt = inf_opt;
 inf = @(varargin) infGrid(varargin{:}, inf_opt);
 gp_params = {inf, model.mean, model.cov, model.lik};
@@ -40,7 +40,9 @@ end
 dbg.hyp_0 = hyp_0;
 
 tic;
-hyp = minimize(hyp_0, @gp, -40, gp_params{:}, x, y);
+[hyp, hyp_vals, iters] = minimize(hyp_0, @gp, -100, gp_params{:}, x, y);
 dbg.time = toc;
+dbg.hyp_vals = hyp_vals;
+dbg.iters = iters;
 
 end

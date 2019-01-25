@@ -46,7 +46,7 @@ else
     v2 = (scl ^ 2) * rand(1, opt.sm_q);
 
     % Initial hyperparameter values for SM kernel
-    hyp_0.cov = [log([w; m1(:); v1(:)]); log([w; m2(:); v2(:)])];
+    hyp_0.cov = [log([w(:); m1(:); v1(:)]); log([w(:); m2(:); v2(:)])];
     hyp_0.mean = [];
     hyp_0.lik = [];
 
