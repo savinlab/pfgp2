@@ -1,7 +1,7 @@
 %%% Within-model demo of pfgp_2d function
 
 clear all, close all, clc
-rng(17435);
+rng(17436);
 
 % Create synthetic dataset
 
@@ -16,7 +16,7 @@ opt.ng = 256;
 opt.ne = 64;
 
 hyp = get_hyp_init_2d(opt);
-fr_true = sample_tuning_fn(hyp, opt, data_dims, 4);
+fr_true = sample_tuning_fn(hyp, opt, data_dims, 2);
 x = sample_position_vals(n_pts);
 y = sample_spike_counts(fr_true, x, data_dims);
 

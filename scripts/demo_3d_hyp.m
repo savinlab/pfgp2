@@ -1,7 +1,7 @@
 %%% Within-model demo of pfgp_3d function
 
 clear all, close all, clc
-rng(17435);
+rng(17436);
 
 % Create synthetic dataset
 n_pts = 7000;
@@ -57,7 +57,7 @@ end
 function [x] = sample_pop_spikes(n_pts)
 % Sample 'population spike' variable (third domain dimension)
 
-p_raw = ones(1, 10);
+p_raw = ones(1, 12);
 p_vals = p_raw / sum(p_raw);
 
 x = sample_discrete(p_vals, n_pts);
@@ -95,6 +95,7 @@ n_pts = size(x, 1);
 plot(x(1:2:end, 1), x(1:2:end, 2), 'Color', 0.7 * [1, 1, 1]);
 axis square;
 axis xy;
+
 xlim([min(x(:, 1)), max(x(:, 1))]);
 ylim([min(x(:, 2)), max(x(:, 2))]);
 hold on;
@@ -137,7 +138,7 @@ function plot_results(fr_true, x, y, pf, x_max)
 
 grid_max = size(pf.mtuning, 3);
 inc = x_max(3) / grid_max;
-grid_indices = 1:4;
+grid_indices = 3:3:12;
 n_grid_indices = size(grid_indices, 2);
 
 figure();
@@ -145,34 +146,68 @@ figure();
 for i = 1:n_grid_indices
 
     grid_idx = grid_indices(i);
-    ps_max = grid_idx * inc + 1;
-    ps_min = ps_max - inc;
 
-    fr_true_slice = fr_true(:, :, ps_min);
-    slice_idx = (x(:, 3) >= ps_min) & (x(:, 3) < ps_max);
-    x_slice = x(slice_idx, 1:2);
-    y_slice = y(slice_idx, 1);
+    if inc == 1
 
-    mtuning_slice = pf.mtuning(:, :, grid_idx);
-    vartuning_slice = pf.vartuning(:, :, grid_idx);
+        fr_true_slice = fr_true(:, :, grid_idx);
+        slice_idx = (x(:, 3) == grid_idx);
+        x_slice = x(slice_idx, 1:2);
+        y_slice = y(slice_idx, 1);
 
-    cbar_lims = [min(fr_true_slice(:)), max(fr_true_slice(:))];
+        mtuning_slice = pf.mtuning(:, :, grid_idx);
+        vartuning_slice = pf.vartuning(:, :, grid_idx);
 
-    subplot(n_grid_indices, 4, i * 4 - 3);
-    plot_fr_true(fr_true_slice, cbar_lims);
-    title(sprintf('%d/%d', ps_min, x_max(3)));
+        cbar_lims = [min(fr_true_slice(:)), max(fr_true_slice(:))];
 
-    subplot(n_grid_indices, 4, i * 4 - 2);
-    plot_raw_data(x_slice, y_slice);
-    title(sprintf('%d:%d/%d', ps_min, ps_max, x_max(3)));
+        subplot(n_grid_indices, 4, i * 4 - 3);
+        plot_fr_true(fr_true_slice, cbar_lims);
+        title(sprintf('%d/%d', grid_idx, x_max(3)));
 
-    subplot(n_grid_indices, 4, i * 4 - 1);
-    plot_mtuning(mtuning_slice, cbar_lims);
-    title(sprintf('%d/%d', grid_idx, grid_max));
+        subplot(n_grid_indices, 4, i * 4 - 2);
+        plot_raw_data(x_slice, y_slice);
+        title(sprintf('%d/%d', grid_idx, x_max(3)));
 
-    subplot(n_grid_indices, 4, i * 4);
-    plot_sdtuning(sqrt(vartuning_slice), cbar_lims);
-    title(sprintf('%d/%d', grid_idx, grid_max));
+        subplot(n_grid_indices, 4, i * 4 - 1);
+        plot_mtuning(mtuning_slice, cbar_lims);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+        subplot(n_grid_indices, 4, i * 4);
+        plot_sdtuning(sqrt(vartuning_slice), cbar_lims);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+
+    else
+
+        ps_max = grid_idx * inc + 1;
+        ps_min = ps_max - inc;
+
+        fr_true_slice = fr_true(:, :, ps_min);
+        slice_idx = (x(:, 3) >= ps_min) & (x(:, 3) < ps_max);
+        x_slice = x(slice_idx, 1:2);
+        y_slice = y(slice_idx, 1);
+
+        mtuning_slice = pf.mtuning(:, :, grid_idx);
+        vartuning_slice = pf.vartuning(:, :, grid_idx);
+
+        cbar_lims = [min(fr_true_slice(:)), max(fr_true_slice(:))];
+
+        subplot(n_grid_indices, 4, i * 4 - 3);
+        plot_fr_true(fr_true_slice, cbar_lims);
+        title(sprintf('%d/%d', ps_min, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 2);
+        plot_raw_data(x_slice, y_slice);
+        title(sprintf('%d:%d/%d', ps_min, ps_max, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 1);
+        plot_mtuning(mtuning_slice, cbar_lims);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+        subplot(n_grid_indices, 4, i * 4);
+        plot_sdtuning(sqrt(vartuning_slice), cbar_lims);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+    end
 
 end
 
