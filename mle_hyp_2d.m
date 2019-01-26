@@ -9,6 +9,8 @@ function [hyp, dbg] = mle_hyp_2d(y, x, opt, hyp_0)
 %         x_max (float): Maximum position value (default: 256.0)
 %         use_se (bool): Whether to use squared exponential (SE) kernel
 %             instead of spectral mixture (SM) kernel (default: false)
+%         n_hyp_restarts (int): Number of initializations to use when 
+%             optimizing hyperparameters (default: 5)
 %         sm_q (int): Number of spectral mixture components (if SM kernel is
 %             being used).
 %     hyp_0 (struct, optional): Initial hyperparameter values for optimizer.
@@ -22,10 +24,8 @@ function [hyp, dbg] = mle_hyp_2d(y, x, opt, hyp_0)
 if ~isfield(opt, 'x_min'), opt.x_min = 1.0; end
 if ~isfield(opt, 'x_max'), opt.x_max = 256.0; end
 if ~isfield(opt, 'use_se'), opt.use_se = false; end
+if ~isfield(opt, 'n_hyp_restarts'), opt.n_hyp_restarts = 5; end
 if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
-if nargin < 4
-    hyp_0 = [];
-end
 dbg.opt = opt;
 
 model = get_gp_model_2d(opt);
@@ -34,13 +34,29 @@ dbg.inf_opt = inf_opt;
 inf = @(varargin) infGrid(varargin{:}, inf_opt);
 gp_params = {inf, model.mean, model.cov, model.lik};
 
-if isempty(hyp_0)
-    hyp_0 = get_hyp_init_2d(opt);
-end
-dbg.hyp_0 = hyp_0;
+% If hyp_0 is not passed, use multiple restarts to find hyp setting
+if nargin < 4
 
-tic;
-hyp = minimize(hyp_0, @gp, -40, gp_params{:}, x, y);
-dbg.time = toc;
+    tic;
+    for i = 1:(opt.n_hyp_restarts + 1)
+        hyp_0 = get_hyp_init_2d(opt);
+        [hyp, fvals] = minimize(hyp_0, @gp, -100, gp_params{:}, x, y);
+        nll_vals(i) = fvals(end);
+        hyp_vals(i) = hyp;
+    end
+    dbg.time = toc;
+
+    [~, idx_min] = min(nll_vals);
+    hyp = hyp_vals(idx_min);
+    dbg.nll = nll_vals(idx_min);
+
+% If it is passed, just use hyp_0 for initialization
+else
+
+    tic;
+    hyp = minimize(hyp_0, @gp, -200, gp_params{:}, x, y);
+    dbg.time = toc;
+
+end
 
 end
