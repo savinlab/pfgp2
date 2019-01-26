@@ -23,7 +23,9 @@ y = sample_spike_counts(fr_true, x);
 [pf, dbg] = pfgp_3d(y, x, opt);
 
 % Plot ground truth vs GP estimate
-plot_results(fr_true, x, y, pf, opt.x_max);
+grid_indices = 3:3:12;
+plot_results_tuning(fr_true, x, y, pf, opt.x_max, grid_indices);
+%plot_results_latent(fr_true, x, y, pf, opt.x_max, grid_indices);
 
 
 function [t] = sample_tuning_fn(hyp, opt, dims, inc)
@@ -47,6 +49,8 @@ function [x] = sample_position_vals(n_pts)
 
 % Generate samples from random walk
 rw_smps = get_rnd_walk_ring(0.05, n_pts, 0.25, 0.99, [0, 0.75]);
+% Make hole bigger to check that variance works
+%rw_smps = get_rnd_walk_ring(0.05, n_pts, 0.40, 0.99, [0, 0.75]);
 
 % Rescale x to unit square
 x = ceil(256 / 2 * (rw_smps + 1));
@@ -133,12 +137,12 @@ colorbar;
 end
 
 
-function plot_results(fr_true, x, y, pf, x_max)
+
+function plot_results_tuning(fr_true, x, y, pf, x_max, grid_indices)
 % Plot results of demo
 
 grid_max = size(pf.mtuning, 3);
 inc = x_max(3) / grid_max;
-grid_indices = 3:3:12;
 n_grid_indices = size(grid_indices, 2);
 
 figure();
@@ -157,10 +161,11 @@ for i = 1:n_grid_indices
         mtuning_slice = pf.mtuning(:, :, grid_idx);
         vartuning_slice = pf.vartuning(:, :, grid_idx);
 
-        cbar_lims = [min(fr_true_slice(:)), max(fr_true_slice(:))];
+        cbar_lims_fr = [min(fr_true_slice(:)), max(fr_true_slice(:))];
+        cbar_lims_sd = [0, max(sqrt(vartuning_slice(:)))];
 
         subplot(n_grid_indices, 4, i * 4 - 3);
-        plot_fr_true(fr_true_slice, cbar_lims);
+        plot_fr_true(fr_true_slice, cbar_lims_fr);
         title(sprintf('%d/%d', grid_idx, x_max(3)));
 
         subplot(n_grid_indices, 4, i * 4 - 2);
@@ -168,11 +173,11 @@ for i = 1:n_grid_indices
         title(sprintf('%d/%d', grid_idx, x_max(3)));
 
         subplot(n_grid_indices, 4, i * 4 - 1);
-        plot_mtuning(mtuning_slice, cbar_lims);
+        plot_mtuning(mtuning_slice, cbar_lims_fr);
         title(sprintf('%d/%d', grid_idx, grid_max));
 
         subplot(n_grid_indices, 4, i * 4);
-        plot_sdtuning(sqrt(vartuning_slice), cbar_lims);
+        plot_sdtuning(sqrt(vartuning_slice), cbar_lims_sd);
         title(sprintf('%d/%d', grid_idx, grid_max));
 
 
@@ -205,6 +210,90 @@ for i = 1:n_grid_indices
 
         subplot(n_grid_indices, 4, i * 4);
         plot_sdtuning(sqrt(vartuning_slice), cbar_lims);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+    end
+
+end
+
+end
+
+
+function plot_results_latent(fr_true, x, y, pf, x_max, grid_indices)
+% Plot results of demo
+
+grid_max = size(pf.mtuning, 3);
+inc = x_max(3) / grid_max;
+n_grid_indices = size(grid_indices, 2);
+
+figure();
+
+for i = 1:n_grid_indices
+
+    grid_idx = grid_indices(i);
+
+    if inc == 1
+
+        fr_true_slice = fr_true(:, :, grid_idx);
+        slice_idx = (x(:, 3) == grid_idx);
+        x_slice = x(slice_idx, 1:2);
+        y_slice = y(slice_idx, 1);
+
+        log_fr_true_slice = log(fr_true_slice);
+        fmu_slice = pf.fmu(:, :, grid_idx);
+        fsd2_slice = pf.fsd2(:, :, grid_idx);
+
+        cbar_lims_fr = [min(log_fr_true_slice(:)), max(log_fr_true_slice(:))];
+        cbar_lims_sd = [0, max(sqrt(fsd2_slice(:)))];
+
+        subplot(n_grid_indices, 4, i * 4 - 3);
+        plot_fr_true(log_fr_true_slice, cbar_lims_fr);
+        title(sprintf('%d/%d', grid_idx, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 2);
+        plot_raw_data(x_slice, y_slice);
+        title(sprintf('%d/%d', grid_idx, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 1);
+        plot_mtuning(fmu_slice, cbar_lims_fr);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+        subplot(n_grid_indices, 4, i * 4);
+        plot_sdtuning(sqrt(fsd2_slice), cbar_lims_sd);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+
+    else
+
+        ps_max = grid_idx * inc + 1;
+        ps_min = ps_max - inc;
+
+        fr_true_slice = fr_true(:, :, ps_min);
+        slice_idx = (x(:, 3) >= ps_min) & (x(:, 3) < ps_max);
+        x_slice = x(slice_idx, 1:2);
+        y_slice = y(slice_idx, 1);
+
+        log_fr_true_slice = log(fr_true_slice);
+        fmu_slice = pf.fmu(:, :, grid_idx);
+        fsd2_slice = pf.fsd2(:, :, grid_idx);
+
+        cbar_lims_fr = [min(log_fr_true_slice(:)), max(log_fr_true_slice(:))];
+        cbar_lims_sd = [0, max(sqrt(fsd2_slice(:)))];
+
+        subplot(n_grid_indices, 4, i * 4 - 3);
+        plot_fr_true(log_fr_true_slice, cbar_lims_fr);
+        title(sprintf('%d/%d', ps_min, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 2);
+        plot_raw_data(x_slice, y_slice);
+        title(sprintf('%d:%d/%d', ps_min, ps_max, x_max(3)));
+
+        subplot(n_grid_indices, 4, i * 4 - 1);
+        plot_mtuning(fmu_slice, cbar_lims_fr);
+        title(sprintf('%d/%d', grid_idx, grid_max));
+
+        subplot(n_grid_indices, 4, i * 4);
+        plot_sdtuning(sqrt(fsd2_slice), cbar_lims_sd);
         title(sprintf('%d/%d', grid_idx, grid_max));
 
     end

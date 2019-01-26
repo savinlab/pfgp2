@@ -24,7 +24,8 @@ y = sample_spike_counts(fr_true, x, data_dims);
 [pf, dbg] = pfgp_2d(y, x, opt);
 
 % Plot ground truth vs GP estimate
-plot_results(fr_true, x, y, pf);
+plot_results_tuning(fr_true, x, y, pf);
+%plot_results_latent(fr_true, x, y, pf);
 
 
 function [t] = sample_tuning_fn(hyp, opt, dims, inc)
@@ -64,7 +65,6 @@ function plot_fr_true(fr_true, cbar_limits)
 % Plot ground truth tuning function
 
 imagesc(fr_true');
-title('ground truth');
 axis square; 
 axis xy;
 caxis(cbar_limits);
@@ -86,7 +86,6 @@ hold on;
 idx = and(y > 0, mod(1:n_pts, 2)' == 1);
 scatter(x(idx, 1), x(idx, 2), 9, y(idx), 'filled');
 colorbar;
-title('raw data');
 
 end
 
@@ -95,7 +94,6 @@ function plot_mtuning(mtuning, cbar_limits)
 % Plot mean of tuning function estimator
 
 imagesc(mtuning');
-title('posterior mean estimate');
 axis square;
 axis xy;
 caxis(cbar_limits);
@@ -108,7 +106,6 @@ function plot_sdtuning(sdtuning, cbar_limits)
 % Plot stddev of tuning function estimator
 
 imagesc(sdtuning');
-title('posterior sd');
 axis square;
 axis xy;
 caxis(cbar_limits);
@@ -117,24 +114,56 @@ colorbar;
 end
 
 
-function plot_results(fr_true, x, y, pf)
+function plot_results_tuning(fr_true, x, y, pf)
 % Plot results of ground truth recovery experiment
 
-%pf_fn_vals = [pf.mtuning(:); sqrt(pf.vartuning(:))];
-%fr_cbar_lims = [min(fr_true(:)), max(fr_true(:))];
-%pf_cbar_lims = [min(pf_fn_vals(:)), max(pf_fn_vals(:))];
-
-all_vals = [fr_true(:); pf.mtuning(:); sqrt(pf.vartuning(:))];
-cbar_lims = [min(all_vals), max(all_vals)];
+cbar_lims_fr = [min(fr_true(:)), max(fr_true(:))];
+cbar_lims_sd = [0, max(sqrt(pf.vartuning(:)))];
 
 figure();
+
 subplot(141);
-plot_fr_true(fr_true, cbar_lims);
+plot_fr_true(fr_true, cbar_lims_fr);
+title('ground truth');
+
 subplot(142);
 plot_raw_data(x, y);
+title('raw data');
+
 subplot(143);
-plot_mtuning(pf.mtuning, cbar_lims);
+plot_mtuning(pf.mtuning, cbar_lims_fr);
+title('posterior mean estimate');
+
 subplot(144);
-plot_sdtuning(sqrt(pf.vartuning), cbar_lims);
+plot_sdtuning(sqrt(pf.vartuning), cbar_lims_sd);
+title('posterior sd');
+
+end
+
+
+function plot_results_latent(fr_true, x, y, pf)
+% Plot results of ground truth recovery experiment
+
+log_fr_true = log(fr_true);
+cbar_lims_fr = [min(log_fr_true(:)), max(log_fr_true(:))];
+cbar_lims_sd = [0, max(sqrt(pf.fsd2(:)))];
+
+figure();
+
+subplot(141);
+plot_fr_true(log_fr_true, cbar_lims_fr);
+title('log(ground truth)');
+
+subplot(142);
+plot_raw_data(x, y);
+title('raw data');
+
+subplot(143);
+plot_mtuning(pf.fmu, cbar_lims_fr);
+title('latent mean estimate');
+
+subplot(144);
+plot_sdtuning(sqrt(pf.fsd2), cbar_lims_sd);
+title('latent sd estimate');
 
 end

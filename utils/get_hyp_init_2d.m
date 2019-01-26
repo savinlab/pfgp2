@@ -38,10 +38,17 @@ else
         'sm_q parameter is required for SM kernel' ...
     );
 
+    % Spatial scale of init hyperparameters
     scl = 1 / (opt.x_max - opt.x_min);
+
+    % Set weights to equal values
     w = ones(opt.sm_q, 1) / opt.sm_q; 
-    m1 = scl * rand(1, opt.sm_q); 
-    m2 = scl  * rand(1, opt.sm_q); 
+
+    % Set mean values (multiplied by 2 to match periodicity)
+    m1 = 2 * scl * rand(1, opt.sm_q); 
+    m2 = 2 * scl  * rand(1, opt.sm_q); 
+
+    % Set variance values
     v1 = (scl ^ 2) * rand(1, opt.sm_q);
     v2 = (scl ^ 2) * rand(1, opt.sm_q);
 
