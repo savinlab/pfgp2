@@ -25,7 +25,12 @@ y = sample_spike_counts(fr_true, x, data_dims);
 
 % Plot ground truth vs GP estimate
 plot_results_tuning(fr_true, x, y, pf);
-%plot_results_latent(fr_true, x, y, pf);
+saveas(gcf, 'demo_2d_hyp_tuning_plot.png');
+plot_results_latent(fr_true, x, y, pf);
+saveas(gcf, 'demo_2d_hyp_latent_plot.png');
+
+% Save results
+save('demo_2d_hyp_results.mat');
 
 
 function [t] = sample_tuning_fn(hyp, opt, dims, inc)

@@ -19,6 +19,11 @@ opt.ne = 64;
 % Plot ground truth vs GP estimate
 plot_results(fr_true, x, y, pf);
 
+% Save results
+saveas(gcf, 'demo_2d_plot.png');
+save('demo_2d_results.mat');
+
+
 
 function [f] = sample_tuning_fn(n1, n2)
 % Generate a (neurally realistic) random tuning function
