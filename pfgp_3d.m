@@ -50,13 +50,8 @@ function [results, dbg] = pfgp_3d(y, x, opt, hyp)
 %     dbg (struct): Debug information
 
 % Set defaults for opt
-if ~isfield(opt, 'x_min'), opt.x_min = [1.0, 1.0, 1.0]; end
-if ~isfield(opt, 'x_max'), opt.x_max = [256.0, 256.0, 256.0]; end
-if ~isfield(opt, 'ng'), opt.ng = [32, 32, 10]; end
-if ~isfield(opt, 'ne'), opt.ne = [32, 32, 10]; end
-if ~isfield(opt, 'inc_slow'), opt.inc_slow = 2; end
-if ~isfield(opt, 'use_se'), opt.use_se = false; end
-if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
+opt_default = default_options_3d();
+opt = set_opt_defaults(opt, opt_default);
 dbg.opt = opt;
 
 assert( ...

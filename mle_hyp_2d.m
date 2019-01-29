@@ -21,11 +21,9 @@ function [hyp, dbg] = mle_hyp_2d(y, x, opt, hyp_0)
 %     hyp (struct): Hyperparameter struct (see GPML docs)
 %     dbg (struct): Debug information
 
-if ~isfield(opt, 'x_min'), opt.x_min = 1.0; end
-if ~isfield(opt, 'x_max'), opt.x_max = 256.0; end
-if ~isfield(opt, 'use_se'), opt.use_se = false; end
-if ~isfield(opt, 'n_hyp_restarts'), opt.n_hyp_restarts = 5; end
-if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
+% Set defaults for opt
+opt_default = default_options_2d();
+opt = set_opt_defaults(opt, opt_default);
 dbg.opt = opt;
 
 model = get_gp_model_2d(opt);
