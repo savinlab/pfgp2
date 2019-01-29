@@ -54,7 +54,7 @@ if nargin < 4
 else
 
     tic;
-    hyp = minimize(hyp_0, @gp, -200, gp_params{:}, x, y);
+    hyp = minimize(hyp_0, @gp, -100, gp_params{:}, x, y);
     dbg.time = toc;
 
 end
