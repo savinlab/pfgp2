@@ -30,7 +30,7 @@ plot_results_latent(fr_true, x, y, pf);
 saveas(gcf, 'demo_2d_hyp_latent_plot.png');
 
 % Save results
-save('demo_2d_hyp_results.mat');
+%save('demo_2d_hyp_results.mat');
 
 
 function [t] = sample_tuning_fn(hyp, opt, dims, inc)

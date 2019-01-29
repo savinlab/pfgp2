@@ -40,8 +40,8 @@ opt.sm_q = 5;
 plot_results(fr_true, x, y, pf, x_max);
 
 % Save results
-saveas(gcf, 'demo_3d_simple_plot.png');
-save('demo_3d_simple_results.mat');
+%saveas(gcf, 'demo_3d_simple_plot.png');
+%save('demo_3d_simple_results.mat');
 
 
 %% Helper functions

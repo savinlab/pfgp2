@@ -59,6 +59,11 @@ if ~isfield(opt, 'use_se'), opt.use_se = false; end
 if ~isfield(opt, 'sm_q'), opt.sm_q = 5; end
 dbg.opt = opt;
 
+assert( ...
+    all(mod(opt.ne, opt.inc_slow) == 0), ...
+    'opt.ne needs to be divisible by opt.inc_slow' ...
+);
+
 if nargin < 4
     hyp = [];
 end

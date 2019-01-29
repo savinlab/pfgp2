@@ -20,8 +20,8 @@ opt.ne = 64;
 plot_results(fr_true, x, y, pf);
 
 % Save results
-saveas(gcf, 'demo_2d_plot.png');
-save('demo_2d_results.mat');
+%saveas(gcf, 'demo_2d_plot.png');
+%save('demo_2d_results.mat');
 
 
 
