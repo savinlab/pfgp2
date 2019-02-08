@@ -19,5 +19,5 @@ git clone --recurse-submodules git@github.com:savinlab/pfgp2.git
 ### Dependencies
 
 This library depends on the GPML MATLAB library 
-(<http://www.gaussianprocess.org/gpml/code>) version < 4.2, which is installed
+(<http://www.gaussianprocess.org/gpml/code>) (version < 4.2), which is installed
 in this Git repository as a submodule. 
