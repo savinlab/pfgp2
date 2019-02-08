@@ -46,7 +46,10 @@ if nargin < 4
 
     [~, idx_min] = min(nll_vals);
     hyp = hyp_vals(idx_min);
+
     dbg.nll = nll_vals(idx_min);
+    dbg.nll_vals = nll_vals;
+    dbg.hyp_vals = hyp_vals;
 
 % If it is passed, just use hyp_0 for initialization
 else
