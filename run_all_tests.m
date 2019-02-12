@@ -2,9 +2,6 @@
 
 clear all, close all, clc
 
-run('gpml/startup.m');
-addpath('utils');
-
 test_scripts = dir('test/*.m'); 
 for i = 1:size(test_scripts, 1)
     
