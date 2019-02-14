@@ -23,7 +23,7 @@ function [results, time] = gp_inf_fast(x, y, x_test, model, hyp)
 %         nll (double): Negative log likelihood value         
 %     time (double): GP inference time
 
-inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-5, 'stat', true);
+inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-6, 'stat', true);
 tic;
 [post, nll] = infGrid(hyp, model.mean, model.cov, model.lik, x, y, inf_opt);
 time = toc;
