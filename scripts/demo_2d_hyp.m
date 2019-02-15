@@ -14,6 +14,7 @@ opt.use_se = false;
 opt.sm_q = 5;
 opt.ng = 256;
 opt.ne = 64;
+opt.val_pct = 0;
 
 hyp = get_hyp_init_2d(opt);
 fr_true = sample_tuning_fn(hyp, opt, data_dims, 2);
