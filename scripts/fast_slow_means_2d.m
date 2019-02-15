@@ -46,6 +46,13 @@ subplot(144);
 plot_mtuning(dbg.m_f_fast_coarse, cbar_lims_fr);
 title('latent mean estimate (fast)');
 
+figure();
+
+scatter(dbg.m_f_slow_coarse(:), dbg.m_f_fast_coarse(:));
+xlabel('slow inference');
+ylabel('fast inference');
+title('Slow and fast inference latent mean values (artificial data)');
+
 
 function [t] = sample_tuning_fn(hyp, opt, dims, inc)
 
