@@ -111,8 +111,23 @@ dbg.inf_slow.time = inf_slow_time;
 dbg.inf_slow.x_test = x_slow;
 fprintf('Done. Slow inference took %f seconds\n', inf_slow_time);
 
+% Expand fast inference mean to grid
+m_f_fast = vec_to_arr(inf_fast_results.m_f, x_test_dims);
+
+% Check that slow and fast means agree
+m_f_slow_coarse = vec_to_arr(inf_slow_results.m_f, x_slow_dims);
+m_f_fast_coarse = subsample_grid_3d(m_f_fast, opt.inc_slow);
+diff = abs(m_f_fast_coarse - m_f_slow_coarse);
+max_diff = max(diff(:));
+if max_diff > 1.0
+    warning('Posterior means from fast and slow inference do not agree.');
+end
+dbg.m_f_fast_coarse = m_f_fast_coarse;
+dbg.m_f_slow_coarse = m_f_slow_coarse;
+dbg.max_fast_slow_diff = max_diff;
+
 % Use fast mean for latent mean
-m_f = vec_to_arr(inf_fast_results.m_f, x_test_dims);
+m_f = m_f_fast;
 
 % Interpolate slow var on fast grid to get latent variance
 v_f_slow = vec_to_arr(inf_slow_results.v_f, x_slow_dims);

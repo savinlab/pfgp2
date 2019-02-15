@@ -109,7 +109,7 @@ m_f_slow_coarse = vec_to_arr(inf_slow_results.m_f, x_slow_dims);
 m_f_fast_coarse = subsample_grid_2d(m_f_fast, opt.inc_slow);
 diff = abs(m_f_fast_coarse - m_f_slow_coarse);
 max_diff = max(diff(:));
-if max_diff > 1e-6
+if max_diff > 1.0
     warning('Posterior means from fast and slow inference do not agree.');
 end
 dbg.m_f_fast_coarse = m_f_fast_coarse;

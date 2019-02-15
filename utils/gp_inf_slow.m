@@ -22,6 +22,9 @@ function [results, time] = gp_inf_slow(x, y, x_test, model, hyp)
 %         v_t ((grid size)xD array): Posterior var of tuning function
 %     time (double): GP inference time
 
+% Clear persistent variables inside infLaplace function
+clear infLaplace
+
 inf_opt = struct('cg_maxit', 500, 'cg_tol', 1e-5);
 inf = @(varargin) infGrid(varargin{:}, inf_opt);
 gp_params = {inf, model.mean, model.cov, model.lik};

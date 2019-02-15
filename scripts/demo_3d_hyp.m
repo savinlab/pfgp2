@@ -98,7 +98,7 @@ colorbar;
 end
 
 
-function plot_raw_data(x, y)
+function plot_raw_data(x, y, clims)
 % Plot raw position data
 
 n_pts = size(x, 1);
@@ -112,6 +112,7 @@ hold on;
 idx = and(y > 0, mod(1:n_pts, 2)' == 1);
 scatter(x(idx, 1), x(idx, 2), 9, y(idx), 'filled');
 colorbar;
+caxis(clims);
 title('raw data');
 
 end
