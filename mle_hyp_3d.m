@@ -62,6 +62,7 @@ if nargin < 4
 
         % Compute NLL values on validation data
         for i = 1:length(hyps)
+            clear infLaplace;
             [nlls_val(i), ~] = gp(hyps(i), gp_params{:}, val_data.x, val_data.y);
         end
 
@@ -81,6 +82,7 @@ if nargin < 4
 else
 
     tic;
+    clear infLaplace;
     [hyp, fvals] = minimize(hyp_0, @gp, -100, gp_params{:}, x, y);
     dbg.time = toc;
     dbg.nll = fvals(end);
@@ -98,6 +100,7 @@ for i = 1:n_est
     hyp_0 = get_hyp_init_3d(opt);
 
     tic;
+    clear infLaplace;
     [hyp, fvals] = minimize(hyp_0, @gp, -100, gp_params{:}, x, y);
     times(i) = toc;
     nlls(i) = fvals(end);
